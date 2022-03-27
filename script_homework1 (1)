@@ -1,0 +1,59 @@
+#!/bin/sh
+
+####### OS ESPAÇOS CONVÉM SUBSTITUIR POR "%20" PARA O URL ESTAR CORRETO ########
+
+./readme.txt
+
+eSearch_history() {
+echo "" #Enter
+echo -_-_-_-_- eSearch_history -_-_-_-_- #Designação da função que vai executar
+echo "" #Enter
+
+#Vai fazer o download do ficheiro Pal_aia.xml com as informações do site da database ($1) e espécie definida no termo ($2) 
+#query_key é uma variável depois criada pelo próprio site assim como o WebEnv
+file=$(wget 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi/?db='$1'&term='$2'&query_key='$key'&WebEnv='$webenv'&usehistory=y' -O ~/Pal_aia.xml)
+
+#O comando grep serve para ir buscar ao ficheiro Pal_aia.xml todos os caracteres que estão entre "<QueryKey>" e "</QueryKey>"
+#Os comandos sed excluir os caracteres entre as barras(/ e // para terminar) neste caso <QueryKey>, <\, QueryKey>
+query_key=$(grep -o "<QueryKey>.*</QueryKey>" ~/Pal_aia.xml | sed 's/<QueryKey>//' | sed 's/<\/QueryKey>//' )
+
+WebEnv=$(grep -o "<WebEnv>.*</WebEnv>" ~/Pal_aia.xml | sed 's/<WebEnv>//' | sed 's/<\/WebEnv>//' )
+
+echo Query_Key = "$query_key" #Print da Query_key obtida através do comando acima (query_key=$(grep ...))
+echo WebEnv = "$WebEnv" #Print da Query_key obtida através do comando acima (WebEnv=$(grep ...))
+
+#Tentativa de criação de uma array para armazenar os valores da QueryKey e do WebEnv e depois retornar todos os elementos da array 
+#declare -a results #Criação da array results
+#results={"$query_key" "$WebEnv"} #inserção dos valores na array
+#echo ${results[@]} #Print de todos os elementos da array
+
+echo "" #Enter
+echo -_-_-_-_- File Pal_aia.xml -_-_-_-_- #Designação do ficheiro que vai abrir
+echo "" #Enter
+cat Pal_aia.xml
+echo "" #Enter
+}
+
+#Executar a função eSearch_history com os parametros dados através da shell
+eSearch_history $1 $2
+
+eFetch_history() {
+echo "" #Enter
+echo -_-_-_-_- eFetch_history -_-_-_-_- #Designação da função que vai executar
+echo "" #Enter
+
+query_key=$(grep -o "<QueryKey>.*</QueryKey>" ~/Pal_aia.xml | sed 's/<QueryKey>//' | sed 's/<\/QueryKey>//' )
+
+WebEnv=$(grep -o "<WebEnv>.*</WebEnv>" ~/Pal_aia.xml | sed 's/<WebEnv>//' | sed 's/<\/WebEnv>//' )
+
+#Vai fazer o download do ficheiro Pal_aia.fasta com as sequências de nucleótidos (database = $1) da espécie definida (term = $2)
+aia=$(wget 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi/?db='$1'&query_key='$query_key'&WebEnv='$WebEnv'&usehistory=y&rettype=fasta' -O ~/Pal_aia.fasta)
+
+echo "" #Enter
+echo -_-_-_-_- File Pal_aia.fasta -_-_-_-_- #Designação do ficheiro que vai abrir
+echo "" #Enter
+cat Pal_aia.fasta #Abertura do ficheiro descarregado através da função eFetch_history
+}
+
+#Executar a função eFetch_history com um dos parametros dados através da shell
+eFetch_history $1
